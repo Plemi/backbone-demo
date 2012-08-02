@@ -50,6 +50,7 @@
         <script type="text/javascript" src="js/views/base-form.js"></script>
         <script type="text/javascript" src="js/views/step-date.js"></script>
         <script type="text/javascript" src="js/views/step-lineup.js"></script>
+        <script type="text/javascript" src="js/views/step-lineup-add.js"></script>
 
         <!-- Inline scripts -->
         <script type="text/javascript">
@@ -62,21 +63,21 @@
                     homeRoute: function(actions) {
                         try {
                             //  Date view
-                            //  Define the html container tag view options
                             var stepDate = new plemi.views.StepDate({
-                                // el: '#container',
-                                // id: 'step-date',
-                                model: new plemi.models.Date({
-                                    // hours: 5,
-                                    // minutes: 10,
-                                    // date: '06/02/1985'
-                                }),
+                                model: new plemi.models.Date({}),
                                 violationCollection: new plemi.collections.Violation()
-                                // attributes: {}
                             });
+                            $('#container').append(stepDate.render().$el);
 
-                            // stepDate.render().$el; //  Render when el property has been defined
-                            $('#container').append(stepDate.render().$el); // Render when el property has not been defined
+                            //  Lineup view
+                            var stepLineup = new plemi.views.StepLineup({
+                                collection: new plemi.collections.Lineup([
+                                    new plemi.models.Lineup({name: 'plop'})
+                                ]),
+                                violationCollection: new plemi.collections.Violation()
+                            });
+                            $('#container').append(stepLineup.render().$el);
+
 
                         } catch(err) {
                             console.log('Error', err);

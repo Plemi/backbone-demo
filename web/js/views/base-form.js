@@ -1,14 +1,8 @@
 plemi.views.BaseForm = Backbone.View.extend({
     tagName: 'form',
     initialize: function(options) {
+        // this.violationCollection = new plemi.collections.Violation();
         console.log('BaseForm::initialize()', options);
-
-        //  Template attribute
-        if (options.template) {
-            this.template = options.template;
-        } else if(!this.template) {
-            throw new plemi.utils.ViewError('Missing template', this);
-        }
 
         //  Model attribute
         if(!this.model && !this.collection) {
@@ -19,24 +13,24 @@ plemi.views.BaseForm = Backbone.View.extend({
 
         //  Bind collection events if exists
         if (this.collection) {
-            if (!this.renderCollection) {
-                throw new plemi.utils.ViewError('Missing function renderCollection', this);
+            if (!this.refreshCollection) {
+                throw new plemi.utils.ViewError('Missing function refreshCollection', this);
             }
 
             //  Bind the model changes on this view
-            this.collection.bind('add', this.renderCollection, this);
-            this.collection.bind('remove', this.renderCollection, this);
-            this.collection.bind('reset', this.renderCollection, this);
+            this.collection.bind('add', this.refreshCollection, this);
+            this.collection.bind('remove', this.refreshCollection, this);
+            this.collection.bind('reset', this.refreshCollection, this);
         }
 
         //  Bind model events if exists
         if (this.model) {
-            if (!this.updateModel) {
-                throw new plemi.utils.ViewError('Missing function updateModel', this);
+            if (!this.refreshModel) {
+                throw new plemi.utils.ViewError('Missing function refreshModel', this);
             }
 
             //  Bind the model changes on this view
-            this.model.on('change', this.updateModel, this);
+            this.model.on('change', this.refreshModel, this);
         }
 
         //  Violations
@@ -46,15 +40,16 @@ plemi.views.BaseForm = Backbone.View.extend({
             throw new plemi.utils.ViewError('Missing violation collection', this);
         }
 
-        if (!this.updateViolations) {
-            throw new plemi.utils.ViewError('Missing function updateViolations', this);
+        if (!this.violationCollection.updateModelViolationAttribute) {
+            throw new plemi.utils.ViewError('Missing function updateModelViolationAttribute on violation collection', this);
+        }
+
+        if (!this.refreshViolations) {
+            throw new plemi.utils.ViewError('Missing function refreshViolations', this);
         }
 
         //  Bind the violation changes on this view
-        this.violationCollection.bind('reset', this.updateViolations, this);
-
-        //  Generate html from template
-        this.$el.html(plemi.utils.compileTemplate(this.template));
+        this.violationCollection.bind('reset', this.refreshViolations, this);
     },
     changeModelAttribute: function(name, value) {
         //  Check attribute is known by model
@@ -69,34 +64,10 @@ plemi.views.BaseForm = Backbone.View.extend({
         //  Force values in model
         this.model.set(attributes, {silent: true});
 
-        //  Remove previous attribute violations
-        _.each(this.violationCollection.where({attribute: name}), function(violation) {
-            this.remove(violation);
-            // this.remove(violation, {silent: true});
-        }, this.violationCollection);
 
-        //  Validate data
-        var violations = this.model.validate(attributes);
-        violations = _.isEmpty(violations) ? [] : violations;
-
-        //  Append current attribute violations
-        violations = violations.concat(this.violationCollection.models);
-
-        //  Replace collection content and trigger a "reset" event
-        this.violationCollection.reset(violations);
+        this.violationCollection.updateModelViolationAttribute(this.model, name);
 
         //  Trigger the change event
         this.model.change();
-    },
-    render: function() {
-        if (this.collection) {
-            this.renderCollection(this.collection);
-        }
-
-        if (this.model) {
-            this.updateModel(this.model);
-        }
-
-        return this;
     }
 });

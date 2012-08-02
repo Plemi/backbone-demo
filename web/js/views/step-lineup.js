@@ -1,31 +1,71 @@
 plemi.views.StepLineup = plemi.views.BaseForm.extend({
-    events: {
-        'click a' : 'onClickAdd'
+    events : {
+        'click a.remove': 'onClickRemoveLineup'
     },
     template: '/js/templates/step-lineup.html',
-    onClickAdd: function() {
-        if (this.model.isValid()) {
-            console.log('model valide');
-            this.collection.push(this.model.clone());
-            this.model.clear({silent: true});
-            this.model.change();
-        } else {
-            alert('Invalid');
+    violationViews: {},
+    initialize: function() {
+        this.addLineupView = new plemi.views.StepLineupAdd({
+            model: new plemi.models.Lineup(),
+            violationCollection: new plemi.collections.Violation(),
+        });
+    },
+    onClickRemoveLineup: function(event) {
+        var lineup = this.collection.getByCid($(event.currentTarget).attr('data-lineup'))
+        if (!lineup) {
+            throw new ViewError('Failed to retrieve lineup in collection', this);
         }
+
+        this.collection.remove(lineup);
 
         return false;
     },
-    renderCollection: function(collection) {
-        var liste = this.$el.find('ul');
-        liste.html('');
+    refreshViolations: function(collection) {
+        //  Clear previous violations
+        if (!_.isEmpty(this.violationViews)) {
+            _.each(this.violationViews, function(violationView, index) {
+                //  Remove html
+                violationView.remove({silent: true});
+                //  Delete view localy
+                delete this.violationViews[index];
+            }, this);
+        }
 
+        //  Append violations
         if (collection.length) {
-            _.each(collection.models, function(model) {
-                liste.append('<li>' + model.get('band_name') + '</li>');
+            _.each(collection.models, function(violationModel) {
+                //  Create a violation view and keep it localy
+                var violationView = new plemi.views.Violation({model: violationModel});
+                this.violationViews[violationView.cid] = violationView;
+                //  Display violation
+                this.$el.prepend(violationView.render().$el);
             }, this);
         }
     },
-    renderModel: function(model) {
-        this.$el.find('input[name=band_name]').val(model.get('band_name'));
+    refreshCollection: function(collection) {
+        var list = this.$('ul');
+
+        //  Remove lineups
+        list.html('');
+
+        //  Render lineups
+        if (collection.length) {
+            _.each(collection.models, function(model) {
+                //  Append lineup with a remove link
+                list.append('<li>' + model.get('name') + ' (<a class="remove" href="#" data-lineup="' + model.cid + '">Remove</a>)</li>');
+            }, this);
+        }
+    },
+    render: function() {
+        //  Generate html from template
+        this.$el.html(plemi.utils.compileTemplate(this.template));
+
+        //  Render the add view
+        this.$el.append(this.addLineupView.render().$el);
+
+        //  Refresh the collection in view
+        this.refreshCollection(this.collection);
+
+        return this;
     }
 });
