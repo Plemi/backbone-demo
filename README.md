@@ -27,6 +27,7 @@ Create the the view extending the BaseForm and customize the required methods
 
 Now add your own rendering logic and field event handlers :
 
+```javascript
 <script type="text/javascript">
     plemi.views.ModelView = plemi.views.BaseForm.extend({
         template: '/js/templates/step-date.html',
@@ -63,7 +64,7 @@ Now add your own rendering logic and field event handlers :
         }
     });
 </script>
-
+```
 
 Create the instance and provide :
 - the model
