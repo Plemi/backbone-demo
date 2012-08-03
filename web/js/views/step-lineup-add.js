@@ -1,9 +1,29 @@
 plemi.views.StepLineupAdd = plemi.views.BaseForm.extend({
     events : {
-        'change input, select': 'onFieldChanged'
+        'change input': 'onFieldChanged',
+        'click a': 'onAddLineup'
     },
     template: '/js/templates/step-lineup-add.html',
     violationViews: {},
+    initialize: function(options) {
+        if (options.lineupCollection) {
+            this.lineupCollection = options.lineupCollection;
+        } else if(!this.lineupCollection) {
+            throw new plemi.utils.ViewError('Missing collection "lineupCollection" to add new lineups', this);
+        }
+
+        plemi.utils.callParentMethod(this, 'initialize', options);
+    },
+    onAddLineup: function(event) {
+        if (this.model.isValid()) {
+            //  Append a clone of the model to collection
+            this.lineupCollection.add(this.model.clone());
+
+            //  Clear model
+            this.model.clear();
+        }
+        return false;
+    },
     onFieldChanged: function(event) {
         //  Retrieve changed field
         var field = $(event.currentTarget);
@@ -34,6 +54,7 @@ plemi.views.StepLineupAdd = plemi.views.BaseForm.extend({
         }
     },
     refreshModel: function(model) {
+        this.$el.find('input').val(this.model.get('name'));
 
         return this;
     },
@@ -42,7 +63,7 @@ plemi.views.StepLineupAdd = plemi.views.BaseForm.extend({
         this.$el.append(plemi.utils.compileTemplate(this.template));
 
         //  Refresh the collection in view
-        // this.refreshModel(this.model);
+        this.refreshModel(this.model);
 
         return this;
     }

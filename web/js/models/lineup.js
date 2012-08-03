@@ -6,8 +6,8 @@ plemi.models.Lineup = Backbone.Model.extend({
         var violations = [];
 
         console.log('validate', attributes);
-        if (_.isEmpty(attributes.band_name)) {
-            violations.push(new plemi.utils.AttributeViolation('You must choose a band', 'band_name'));
+        if (_.isEmpty(attributes.name)) {
+            violations.push(new plemi.utils.AttributeViolation('You must choose a band', 'name'));
         }
 
         return violations.length ? violations : null;

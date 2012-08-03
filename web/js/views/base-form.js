@@ -1,9 +1,6 @@
 plemi.views.BaseForm = Backbone.View.extend({
     tagName: 'form',
     initialize: function(options) {
-        // this.violationCollection = new plemi.collections.Violation();
-        console.log('BaseForm::initialize()', options);
-
         //  Model attribute
         if(!this.model && !this.collection) {
             throw new plemi.utils.ViewError('Missing model and/or collection', this);
@@ -18,9 +15,9 @@ plemi.views.BaseForm = Backbone.View.extend({
             }
 
             //  Bind the model changes on this view
-            this.collection.bind('add', this.refreshCollection, this);
-            this.collection.bind('remove', this.refreshCollection, this);
-            this.collection.bind('reset', this.refreshCollection, this);
+            this.collection.on('add', this.onAddRemoveCollection, this);
+            this.collection.on('remove', this.onAddRemoveCollection, this);
+            this.collection.on('reset', this.refreshCollection, this);
         }
 
         //  Bind model events if exists
@@ -49,7 +46,7 @@ plemi.views.BaseForm = Backbone.View.extend({
         }
 
         //  Bind the violation changes on this view
-        this.violationCollection.bind('reset', this.refreshViolations, this);
+        this.violationCollection.on('reset', this.refreshViolations, this);
     },
     changeModelAttribute: function(name, value) {
         //  Check attribute is known by model
@@ -69,5 +66,8 @@ plemi.views.BaseForm = Backbone.View.extend({
 
         //  Trigger the change event
         this.model.change();
+    },
+    onAddRemoveCollection: function(model) {
+        this.refreshCollection(this.collection);
     }
 });

@@ -4,11 +4,14 @@ plemi.views.StepLineup = plemi.views.BaseForm.extend({
     },
     template: '/js/templates/step-lineup.html',
     violationViews: {},
-    initialize: function() {
+    initialize: function(options) {
         this.addLineupView = new plemi.views.StepLineupAdd({
             model: new plemi.models.Lineup(),
             violationCollection: new plemi.collections.Violation(),
+            lineupCollection: this.collection
         });
+
+        plemi.utils.callParentMethod(this, 'initialize', options);
     },
     onClickRemoveLineup: function(event) {
         var lineup = this.collection.getByCid($(event.currentTarget).attr('data-lineup'))
